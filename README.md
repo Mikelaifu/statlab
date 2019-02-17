@@ -1,1 +1,1 @@
-# statlab_python_module
+# statlab Python Module
