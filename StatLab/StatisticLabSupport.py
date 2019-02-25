@@ -4,6 +4,7 @@
 
 import warnings
 from functools import partial
+import functools
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,3 +28,24 @@ class statistic_lab_support:
     @staticmethod
     def linear_equa_formula(m,b,x):
         return (x * m) + b
+    
+    # ----------------------------------------------- Factorial calculation: N! -------------------------------------------------
+    @staticmethod
+    def Factorial_n(n):
+        N= list(range(1, n+1))
+        v = functools.reduce(lambda x,y: x*y, N)
+        return v
+    # ----------------------------------------------- count numbers of unique value of elements from a list -------------------------------------------------
+    # return a dictionary
+    @staticmethod
+    def kind_num(lst):
+        kinds = list(set(lst))
+        count = {}
+        for kind in kinds:
+            count[kind] = 0
+            for i in lst:
+                if kind == i:
+                    count[kind]+= 1
+        return count
+    
+    

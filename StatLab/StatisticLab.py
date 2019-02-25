@@ -5,6 +5,7 @@ from StatisticLabSupport import statistic_lab_support
 from StatisticLabVisualizer import statistic_lab_vizard
 import warnings
 from functools import partial
+import functools
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -265,6 +266,49 @@ class statistic_lab_toolkits():
             return warnings.warn("Warning, r = 0, no linear relationship defined")
         else:
             return warnings.warn("Warning, r < -1 or 1 > 1, so, Could not define any relationship in applied data sets")
+
+
+    # ----------------------------------------------- Counting Methods -------------------------------------------------
+    # type = "multiplication", "permutation", "combination"
+    # k should be a list of indistinct objects
+    # n can be a value or a list of value
+    # r should be a value
+    @staticmethod
+    def Counting (n, r = None, k = None, type = "multiplication", repeated = False, ordered = False, distinct = False):
+        if isinstance(n, (list,)):
+            if 0 in n:
+                return "n can not be 0"
+        if r != None and isinstance(n, (list,)) == False:
+            if r > n:
+                return "r can not be bigger than n"
+            if r >=0 and n >= 0:
+                pass
+        if isinstance(n, (list,)) and type == "multiplication" and repeated == False and r == None:
+            result = functools.reduce(lambda x,y: x*y, n)
+            return result
+        if isinstance(n, (list,)) == False and type == "multiplication" and repeated == True and r != None:
+            result = n ** r
+            return result
+        if isinstance(n, (list,)) == False and type == "multiplication" and repeated == False and r != None:
+            Lst = list(range(1,n+1))[-r:]
+            result = functools.reduce(lambda x,y: x*y, Lst)
+            return result
+        if isinstance(n, (list,)) == False:
+            ## when permutation but objects are distinct
+            if type == 'permutation' and repeated == False and r != None and ordered == True and distinct == True:
+                result = sls.Factorial_n(n)/sls.Factorial_n(n-r)
+                return result
+            ## when permutation but objects are not distinct
+            if type == 'permutation' and repeated == False and isinstance(k, (list,)) and ordered == False and distinct == False:
+                uniq_k_len = len(list(set(k)))
+                k_obj = list(sls.kind_num(k).values())
+                kind_Factorial = list(map(lambda a : sls.Factorial_n(a), k_obj))
+                denominator = functools.reduce(lambda c,d: c*d, kind_Factorial)
+                result = sls.Factorial_n(n)/denominator 
+                return result
+            if type == 'combination' and repeated == False and r != None and ordered == False and distinct == True:
+                result = sls.Factorial_n(n)/(sls.Factorial_n(r) * sls.Factorial_n(n-r))
+                return result
 
         
 
