@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import warnings
 from functools import partial
 from collections import Counter
+import scipy
+from scipy.integrate import quad
 class statistic_lab_vizard():
     # Supportive Method Supports another methods or can be supportive by another support function
     # Main Method can be used as an independent methods
@@ -43,11 +45,22 @@ class statistic_lab_vizard():
         if title != None:
             plt.title(title)
         plt.show()
-
+    
     # ----------------------------------------------- Reguler Bar Chart ------------------------------------------
+    @staticmethod
+    def bard_plot():
+        pass
 
 
     # ----------------------------------------------- Frequency Histogram chart ------------------------------------------
+
+    # ----------------------------------------------- normal distribution Chart ------------------------------------------
+    @staticmethod
+    def norm_plot():
+        pass
+
+
+    
 
 
     # ----------------------------------------------- Time Series line chart ------------------------------------------

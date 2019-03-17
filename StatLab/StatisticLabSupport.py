@@ -80,5 +80,54 @@ class statistic_lab_support:
             if compare == "!=":
                 lst = list(range((min(x) + 1), max(x)))
         return lst 
-    
-    
+    # --------------------------- by matching values within a table, return specific values 's index/col from a table -------------------------
+    # find specific value from a table and return the values's index and col value or position
+    # wehn index = False, the function return actual row name, and column name
+    # when index = True, the function return actual row 's index and col 's index
+    @staticmethod
+    def data_match(value, table, index=False):
+        try :
+            row_val = list(table.index)
+            col_val = list(table.columns)
+            for row, col in table.iterrows():
+                row_idx = row_val.index(row)
+                for i in range(0, len(col)):
+                    if round(col[i], 4) == value: 
+                        col_name = col_val[i]
+                        col_idx = i
+                        result = [(row, col_name), (row_idx, col_idx )]
+                        if index == False:
+                            return result[0]
+                        if index == True:
+                            return result[1]
+        except:
+            print("Error: could not match value's index position within the table")
+
+
+
+    # --------------------------- by matching col, row's index or name, return specific values from a table -----------------------
+    # when index == True, mtaching use row index and col index to return value
+    # when index == False, matching row/col name to return value
+    # when enter row col pistion, index + 1 = current position
+    @staticmethod
+    def index_match(row, col, table, colnm = False, rownm = False, index = True):
+        try :
+            if index == True:
+                if colnm == False and rownm == False:
+                    result = table.iloc[row -1].iloc[col -1] 
+                elif colnm == False and rownm == True:
+                    result = table.iloc[row -1][col] 
+                elif colnm == True and rownm == False:
+                    result = table.loc[row].iloc[col-1]     
+            else:
+                result = table.loc[row].loc[col]
+            return result
+        except:
+            print("Error: there is no matching values based on the col/row position provided")
+
+
+
+        
+        
+
+        

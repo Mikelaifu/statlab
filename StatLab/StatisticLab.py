@@ -417,44 +417,63 @@ class statistic_lab_toolkits():
         return y
     #----------------------------------------------- Normal Distribution : create z-table -------------------------------------------------
     @staticmethod   
-    def norm_z_table(max_lim ):
+    def norm_z_table(max_lim = 3.5):
         standerd_normal_table = pd.DataFrame(data = [], 
-                                            index = np.round(np.arange(0, max_lim, .1), 2),
+                                            index = np.round(np.arange(-3.5, max_lim + 0.1, .1), 2),
                                             columns = np.round(np.arange(0.00, .1, .01), 2))
         for index in standerd_normal_table.index:
             for column in standerd_normal_table.columns:
                 z = np.round(index + column, 2)
-                value, _ = quad(statistic_lab_toolkits.normpdf, np.NINF, z)
+                value, _ = quad(statistic_lab_toolkits.normpdf, np.NINF, z) 
                 standerd_normal_table.loc[index, column] = value
         standerd_normal_table.index = standerd_normal_table.index.astype(str)
         standerd_normal_table.columns = standerd_normal_table.columns.astype(str)
         return standerd_normal_table
+
+
+    
     #----------------------------------------------- Normal Distribution : nomral curve area claculation -------------------------------------------------
     # find normal distribution probability based on z-score  and pdf function to get proportion of area of distribution less than x
+    # accoridng to inver z-score to find area_p
+    # accoridng to area_p to find matched z-score
+    # accoridng z  or range, find area_p
+    # accorudng to calculation, to plot normal distribution and its targeted probability area 
+
     @staticmethod   
-    def normcurv (x = None, mean = None, std = None, z = None, rnd = 4, p = True, ztable = False, plot = False):
+    def normcurv (x = None, mean = None, std = None, z = None, area_p = None, InvNorm = False, rnd = 4, p = True, ztable = False, find_z = False, find_x = False,plot = False):
         zList = None
-        if isinstance(x, (list,)) and len(x) == 2 and z == None:
+        if isinstance(x, (list,)) and len(x) == 2 and z == None and  ztable == False and find_x == False:
             
             z1 = round(statistic_lab_toolkits.z_score(mean, std, min(x)), 2)
             z2 = round(statistic_lab_toolkits.z_score(mean, std, max(x)), 2)
             zList = [z1, z2]
-        elif isinstance(x, (list,)) == False and z == None:
+        elif isinstance(x, (list,)) == False and z == None and ztable == False:
             z = round(statistic_lab_toolkits.z_score(mean, std, x), 2)
-        elif z != None and x == None and mean == None and std == None :
+        elif z != None and x == None and mean == None and std == None and ztable == False:
             if isinstance(z, (list,)) == False:
                 z = z
             else:
                 zList = z
-
-        if ztable == True:
-            if isinstance(zList, (list,)) and len(zList) == 2:
-                max_lim = zList[1] + 1
-                return statistic_lab_toolkits.norm_z_table(max_lim)
+        if ztable == True and find_x == False:
+            table = statistic_lab_toolkits.norm_z_table(max_lim = 3.5)
+            if find_z == True and area_p != None:
+                if InvNorm == False:
+                    area_p
+                else:
+                    area_p = 1- area_p
+                area_p = round(area_p, rnd)
+                print(area_p)
+                result_list = sls.data_match(value = area_p, table = table, index=False)
+                try:
+                    result = float(result_list[0]) + float(result_list[1])
+                    return round(result,3)
+                except:
+                    print ("Error: could not find probability value in the Z-table !!")
+                
             else:
-                max_lim = z + 1
-                return statistic_lab_toolkits.norm_z_table(max_lim)
-        if p == True and (z != None or (x != None and mean != None and std != None)):
+                return table
+                
+        if p == True and (z != None or (x != None and mean != None and std != None)) and ztable == False and find_x == False:
             if isinstance(zList, (list,)) and len(zList) == 2:
                 P1, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[0])
                 P2, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[1])
@@ -464,6 +483,18 @@ class statistic_lab_toolkits():
                 P, _= quad(statistic_lab_toolkits.normpdf, np.NINF, z)
                 result = round(P, rnd)
                 return result 
+        if find_x == True and z != None and mean != None and std != None and x == None:
+            if plot == False:
+                if isinstance(z, (list,)) == False:
+                    result = (z * std) + mean
+                    return result
+                else:
+                    val1 = (z[0] * std) + mean
+                    val2 = (z[1] * std) + mean
+                    result = [val1, val2]
+                    return result
+            else:
+                return slv.norm_plot()
       
 
 
