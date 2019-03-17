@@ -32,6 +32,27 @@ LS_regression(x = None, y = None, S_x = None, S_y = None, Mean_x = None, Mean_y 
 
 Counting (n, r = None, k = None, type = "multiplication", repeated = False, ordered = False, distinct = False)
 
+discrete(x, p, type = "mean", rnd = 6)
+
+BinomP(n, x, p, rnd = 4)
+
+Binom(n,  p, x = None,compare = None, type= None, rnd = 4) 
+
+PoissonP(lmda, x, t, rnd = 4, rnde = 5)
+
+Poisson(lmda, t, x= None, rnd = 4, rnde = 5, compare = None, type = None)
+
+normpdf(z)
+       
+norm_z_table(max_lim )
+
+normcurv (x = None, mean = None, std = None, z = None, rnd = 4, p = True, ztable = False, plot = False)
+        
+
+
+
+
+
 
     
 
