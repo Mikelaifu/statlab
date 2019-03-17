@@ -9,7 +9,7 @@ setup(
     # Needed to actually package something
     packages=['statlab'],
     # Needed for dependencies
-    install_requires=['numpy', 'pandas', 'matplotlib', 'warnings', 'functools', 'collections'],
+    install_requires=['numpy', 'pandas', 'matplotlib', 'warnings', 'functools', 'collections', "scipy"],
     # *strongly* suggested for sharing
     version='0.1',
     # The license can be anything you like

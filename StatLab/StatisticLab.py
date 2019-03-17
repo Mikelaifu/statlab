@@ -8,8 +8,11 @@ from functools import partial
 import functools
 import pandas as pd
 import numpy as np
+import scipy
+from scipy.integrate import quad
 import matplotlib.pyplot as plt
 from collections import Counter
+import math
 
 ## call StatisticLabSupport.py  &  StatisticLabVisualizer.py
 sls = statistic_lab_support()
@@ -269,7 +272,7 @@ class statistic_lab_toolkits():
 
 
     # ----------------------------------------------- Counting Methods -------------------------------------------------
-    # type = "multiplication", "permutation", "combination"
+    # type = "multiplication", "permutation", "combination", "permutation" Nondisctinct, "permutation" disctinct
     # k should be a list of indistinct objects
     # n can be a value or a list of value
     # r should be a value
@@ -310,8 +313,165 @@ class statistic_lab_toolkits():
                 result = sls.Factorial_n(n)/(sls.Factorial_n(r) * sls.Factorial_n(n-r))
                 return result
 
-        
+    # ----------------------------------------------- Discrete Mean/Discrete standerd Deviaiton -------------------------------------------------
+    # x is the frequency list, and p is the probability value list corresponded to each frequency
+    @staticmethod
+    def discrete(x, p, type = "mean", rnd = 6):
+        result_mean =  round(sum(list(map(lambda a, b: a * b, x, p))), rnd)
+        if type == "mean":
+            return result_mean
+        if type ==  "std":
+            result_std = sum(list(map(lambda a,b : ((a - result_mean) ** 2) * b , x, p)))
+            final_result_std = result_std ** (1/2)
+            return round(final_result_std, rnd)
+    # ----------------------------------------------- Binomial Probability Formula -------------------------------------------------
+    @staticmethod
+    def BinomP(n, x, p, rnd = 4):
+        Count = statistic_lab_toolkits.Counting(n = n, r = x , type = "combination", repeated = False, ordered = False, distinct = True)
+        BinomPro = Count * ((p) ** x) * ((1-p) ** (n -x))
+        return round(BinomPro, rnd)
+    # ----------------------------------------------- Binomial Distrubution -------------------------------------------------
+    @staticmethod
+    #calculate  "probability", "mean" and "std"
+    # x = [value1, value2] && compare = "="
+    # compare <=, <, =, >, >=
+    # if between two value, the 3rd element is deciding betwher inclusive
+    def Binom(n,  p, x = None,compare = None, type= None, rnd = 4):
+        if compare != None and type == "probability" and x != None:
+            if compare == "=" and type == "probability":
+                lst = sls.Opera_range_list(compare = compare, x = x, n = n)
+            elif isinstance(x, (list,)) and compare in ["=", "!="]:
+                lst = sls.Opera_range_list(compare = compare, x = x, n = n)
+            else:
+                lst = sls.Opera_range_list(compare = compare, x = x, n= n)
+            probLst = []
+            for ele in lst:
+                BiP = statistic_lab_toolkits.BinomP(n = n, x = ele, p = p, rnd = rnd)
+                probLst.append(BiP)
+            result = functools.reduce(lambda x,y: x + y, probLst)
+            return result
 
+        if compare == None and type == None and x != None:
+            result = statistic_lab_toolkits.BinomP(n = n, x = x, p = p, rnd = rnd)
+            return result
+        if type != "probability" and type != None :
+            mn = n * p
+            mean = round(mn, rnd)
+            if type == "mean":
+                return mean
+            if type == "std":
+                variance = mean * (1 - p)
+                std_dev = variance**(1/2)
+                return round(std_dev, rnd)
+    
+    # ----------------------------------------------- Poisson Probability formula  -------------------------------------------------
+    # lambda represnt the avreage number of occurrences of the event in some interval of length 1 and e=2.71828
+    #T is length of time
+
+    @staticmethod    
+    def PoissonP(lmda, x, t, rnd = 4, rnde = 5):
+        e = round(sls.e, rnde)
+        total_occur = lmda * t
+        FactoX = sls.Factorial_n(x)
+        result = ((total_occur ** x)/FactoX) * (e ** (-total_occur))
+        return round(result, rnd)
+
+    #----------------------------------------------- Poisson Probability distribution  -------------------------------------------------
+    #type = calculate  "probability", "mean" and "std"
+    @staticmethod   
+    def Poisson(lmda, t, x= None, rnd = 4, rnde = 5, compare = None, type = None):
+        if compare != None and type == "probability" and x != None:   
+
+            if compare == "=" and type == "probability":
+                lst = sls.Opera_range_list(compare = compare, x = x)
+            elif isinstance(x, (list,)) and compare in ["=", "!="]:
+                lst = sls.Opera_range_list(compare = compare, x = x)
+            else:
+                lst = sls.Opera_range_list(compare = compare, x = x)
+
+            probLst = []
+            for ele in lst:
+                PisnP = statistic_lab_toolkits.PoissonP(lmda = lmda, x = ele, t = t, rnd = rnd, rnde = rnde)
+                probLst.append(PisnP)
+            result = functools.reduce(lambda x,y: x + y, probLst)
+            return result
+
+        if compare == None and type == None and x != None:
+            result = statistic_lab_toolkits.PoissonP(lmda = lmda, x = ele, t = t, rnd = rnd, rnde = rnde)
+            return result
+
+        if type != "probability" and type != None and x == None:
+            avg = lmda * t
+            mean = round(avg, rnd)
+            if type == "mean":
+                return mean
+            if type == "std":
+                std_dev = mean**(1/2)
+                return round(std_dev, rnd)
+    #----------------------------------------------- Normal Distribution : probablity density function -------------------------------------------------
+    # pdf function : (1/(stedev * (2*pi) ** (1/2)) * (e ** ((-1/2) * ((x - mean)/stdev)**2)))
+    @staticmethod   
+    def normpdf(z):
+        constant = 1.0 / np.sqrt(2*math.pi)
+        y = constant * np.exp((-z**2) / 2.0) 
+        return y
+    #----------------------------------------------- Normal Distribution : create z-table -------------------------------------------------
+    @staticmethod   
+    def norm_z_table(max_lim ):
+        standerd_normal_table = pd.DataFrame(data = [], 
+                                            index = np.round(np.arange(0, max_lim, .1), 2),
+                                            columns = np.round(np.arange(0.00, .1, .01), 2))
+        for index in standerd_normal_table.index:
+            for column in standerd_normal_table.columns:
+                z = np.round(index + column, 2)
+                value, _ = quad(statistic_lab_toolkits.normpdf, np.NINF, z)
+                standerd_normal_table.loc[index, column] = value
+        standerd_normal_table.index = standerd_normal_table.index.astype(str)
+        standerd_normal_table.columns = standerd_normal_table.columns.astype(str)
+        return standerd_normal_table
+    #----------------------------------------------- Normal Distribution : nomral curve area claculation -------------------------------------------------
+    # find normal distribution probability based on z-score  and pdf function to get proportion of area of distribution less than x
+    @staticmethod   
+    def normcurv (x = None, mean = None, std = None, z = None, rnd = 4, p = True, ztable = False, plot = False):
+        zList = None
+        if isinstance(x, (list,)) and len(x) == 2 and z == None:
+            
+            z1 = round(statistic_lab_toolkits.z_score(mean, std, min(x)), 2)
+            z2 = round(statistic_lab_toolkits.z_score(mean, std, max(x)), 2)
+            zList = [z1, z2]
+        elif isinstance(x, (list,)) == False and z == None:
+            z = round(statistic_lab_toolkits.z_score(mean, std, x), 2)
+        elif z != None and x == None and mean == None and std == None :
+            if isinstance(z, (list,)) == False:
+                z = z
+            else:
+                zList = z
+
+        if ztable == True:
+            if isinstance(zList, (list,)) and len(zList) == 2:
+                max_lim = zList[1] + 1
+                return statistic_lab_toolkits.norm_z_table(max_lim)
+            else:
+                max_lim = z + 1
+                return statistic_lab_toolkits.norm_z_table(max_lim)
+        if p == True and (z != None or (x != None and mean != None and std != None)):
+            if isinstance(zList, (list,)) and len(zList) == 2:
+                P1, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[0])
+                P2, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[1])
+                result = round(round(P2, rnd) - round(P1, rnd), rnd)
+                return result 
+            else:
+                P, _= quad(statistic_lab_toolkits.normpdf, np.NINF, z)
+                result = round(P, rnd)
+                return result 
+      
+
+
+
+
+
+
+    
 
 
 
