@@ -46,7 +46,8 @@ normpdf(z)
        
 norm_z_table(max_lim )
 
-normcurv (x = None, mean = None, std = None, z = None, rnd = 4, p = True, ztable = False, plot = False)
+normcurv (x = None, mean = None, std = None, z = None, area_p = None, InvNorm = False, rnd = 4, p = True, ztable = False, find_z = False, 
+                     find_x = False, plot = False, compare = None):
         
 
 

@@ -438,10 +438,13 @@ class statistic_lab_toolkits():
     # accoridng to area_p to find matched z-score
     # accoridng z  or range, find area_p
     # accorudng to calculation, to plot normal distribution and its targeted probability area 
+    # when plot == true, we can only plot graph when we calculate probability area 
 
     @staticmethod   
-    def normcurv (x = None, mean = None, std = None, z = None, area_p = None, InvNorm = False, rnd = 4, p = True, ztable = False, find_z = False, find_x = False,plot = False):
+    def normcurv (x = None, mean = None, std = None, z = None, area_p = None, InvNorm = False, rnd = 4, p = True, ztable = False, find_z = False, 
+                     find_x = False, plot = False, compare = None):
         zList = None
+        graph = None
         if isinstance(x, (list,)) and len(x) == 2 and z == None and  ztable == False and find_x == False:
             
             z1 = round(statistic_lab_toolkits.z_score(mean, std, min(x)), 2)
@@ -465,8 +468,8 @@ class statistic_lab_toolkits():
                 print(area_p)
                 result_list = sls.data_match(value = area_p, table = table, index=False)
                 try:
-                    result = float(result_list[0]) + float(result_list[1])
-                    return round(result,3)
+                    result = round (float(result_list[0]) + float(result_list[1]), 3)
+                    return result 
                 except:
                     print ("Error: could not find probability value in the Z-table !!")
                 
@@ -478,23 +481,29 @@ class statistic_lab_toolkits():
                 P1, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[0])
                 P2, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[1])
                 result = round(round(P2, rnd) - round(P1, rnd), rnd)
-                return result 
+                if plot == True and compare!= None :
+                    graph = slv.norm_plot(z = zList, p=result,range = compare,  wdh =9 , hgt = 6, clr = "b")    
             else:
                 P, _= quad(statistic_lab_toolkits.normpdf, np.NINF, z)
                 result = round(P, rnd)
-                return result 
+                if plot == True and compare!= None :
+                    graph = slv.norm_plot(z = z, p=result,range = compare,  wdh =9 , hgt = 6, clr = "b")  
+            if graph == None:
+                 return result 
+            else:
+                return graph 
         if find_x == True and z != None and mean != None and std != None and x == None:
-            if plot == False:
                 if isinstance(z, (list,)) == False:
-                    result = (z * std) + mean
-                    return result
+                    result = (z * std) + mean  
                 else:
                     val1 = (z[0] * std) + mean
                     val2 = (z[1] * std) + mean
                     result = [val1, val2]
-                    return result
-            else:
-                return slv.norm_plot()
+                return result
+
+       
+        
+            
       
 
 

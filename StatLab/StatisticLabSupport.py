@@ -80,6 +80,7 @@ class statistic_lab_support:
             if compare == "!=":
                 lst = list(range((min(x) + 1), max(x)))
         return lst 
+    
     # --------------------------- by matching values within a table, return specific values 's index/col from a table -------------------------
     # find specific value from a table and return the values's index and col value or position
     # wehn index = False, the function return actual row name, and column name
