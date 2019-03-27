@@ -12,6 +12,8 @@ from collections import Counter
 import math
 import scipy
 from scipy.integrate import quad
+from math import ceil, floor
+from decimal import *
 
 class statistic_lab_support:
      # Supportive Method Supports another methods or can be supportive by another support function
@@ -127,7 +129,36 @@ class statistic_lab_support:
             print("Error: there is no matching values based on the col/row position provided")
 
 
+# --------------------------- round to deciamal position (accurate) -----------------------
+    # direction is ceil, floor, and round
+    # if ceil, it will round up, means 2.3334 will become 2.334 if keep 3 deciaml
+    # if floor, it will round down, mean 2.3335 will become 2.333 if keep 3 decimal place
+    # if round, it will round the last decimal tot he last 2nd decimal, if 3.9999, become 4.000 if keep 3 decimal place
+    # from math import ceil, floor
+    # from decimal import *
+    @staticmethod
+    def float_round(num, places = 0, direction = round):
+        result_output = direction(num * (10**places)) / float(10**places)
+        if isinstance(num, int):
+            if places == 0 :
+                result = result_output
+                return result
+            if places > 0:
+                number = str(result_output) + "." + ("0" * places)
+                result = Decimal(number)
+                return result
+        if isinstance(num, float):
+            number = str(result_output).split(".")
+            int_num = number[0]
+            decimal_num = number[1]
+            if len(decimal_num) == places:
+                result = direction(num * (10**places)) / float(10**places)
+                return result
+            if len(decimal_num) < places :
+                result = Decimal((int_num + "." + decimal_num + "0" * (places - len(decimal_num))))
+                return result
 
+            
         
         
 
