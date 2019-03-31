@@ -13,6 +13,8 @@ from scipy.integrate import quad
 import matplotlib.pyplot as plt
 from collections import Counter
 import math
+from math import ceil, floor
+from decimal import *
 
 ## call StatisticLabSupport.py  &  StatisticLabVisualizer.py
 sls = statistic_lab_support()
@@ -124,25 +126,25 @@ class statistic_lab_toolkits():
             SDeviation = list(map(lambda v: v ** 2, Deviation))
             ## STep 3 add all the Sqaured Deviation and deveided by count 
             StndrdDvtn = (sum(SDeviation)/Count) ** (1/2)
-            return round(StndrdDvtn, rnd) 
+            return sls.float_round(StndrdDvtn, rnd, round) 
 
         elif Method == "computational":
             Svalues = list(map(lambda v: v ** 2, values))
             DeviSum = sum(Svalues)
             ObservSum = sum(values)
             StndrdDvtn = ((DeviSum - ((ObservSum ** 2) /Count) ) /Count) ** (1/2)
-            return round(StndrdDvtn, rnd)
+            return sls.float_round(StndrdDvtn, rnd, round)
 
     # ----------------------------------------------- Variance -------------------------------------------------
     @staticmethod
     def Variance(x, rm_na = False , type = "Sample",  convert_na = False, rnd = 2):
         std = statistic_lab_toolkits.std_dev(x = x, rm_na = rm_na, type = type, convert_na = convert_na , rnd = rnd)
-        return round(std * std, rnd)
+        return sls.float_round(std * std, rnd, round)
     # ----------------------------------------------- Z-score -----------------------------------------------------------
     @staticmethod
     def z_score(mean, std, x, rnd = 3):
         z = (x - mean)/std
-        return round(z, 3)
+        return sls.float_round(z, 3, round)
     # ----------------------------------------------- Percentile Scope (empirical rule + chebyshev's Inequality) -------------------------------------------------
     @staticmethod
     def emperical_rule (x, m, std, shape = "bell", K = None):
@@ -171,11 +173,11 @@ class statistic_lab_toolkits():
         Q2_top = list(filter(lambda x : x >= Q2, x))
         Q1 = statistic_lab_toolkits.median(Q2_bottom)
         Q3 = statistic_lab_toolkits.median(Q2_top)
-        Max = round(max(x), rnd)
-        Min = round(min(x), rnd)
-        result = [Min, round(Q1, rnd), round(Q2, rnd), round(Q3, rnd), Max]
+        Max = sls.float_round(max(x), rnd, round)
+        Min = sls.float_round(min(x), rnd, round)
+        result = [Min, sls.float_round(Q1, rnd, round), sls.float_round(Q2, rnd, round), sls.float_round(Q3, rnd, round), Max]
         if Output == "IQR":
-            return round(Q3 - Q1, rnd)
+            return rsls.float_round(Q3 - Q1, rnd, round)
         elif Output == "5_sum":
             return result
 
@@ -214,15 +216,15 @@ class statistic_lab_toolkits():
             Yz = list(map(lambda d : Y_z_score(d), y))
             Z_sum = sum(list(map(lambda e,d : e*d, Xz, Yz)))
             lcc =Z_sum/(n-1)
-            return round(lcc, rnd)
+            return sls.float_round(lcc, rnd, round)
 
     # ----------------------------------------------- Linear Equation, formula & Plot -------------------------------------------------
     @staticmethod
     def LinearEquation(x_points, y_points, rnd = 4, x_range = (-5, 5), plot = False):
         m = (y_points[1]-y_points[0])/(x_points[1] - x_points[0])
         b = -(m * x_points[1])+ y_points[1]
-        m1 = round(m, rnd)
-        b1 = round(b, rnd)
+        m1 = sls.float_round(m, rnd, round)
+        b1 = sls.float_round(b, rnd, round)
         equation= "y = {}x + {}".format(m1,b1)
         if plot == False:
             return [m1, b1]
@@ -250,17 +252,17 @@ class statistic_lab_toolkits():
             Meany = Mean_y
             r = R_LCC
         if r >= -1 and r <= 1 and r != 0:
-            b1= round((Sy/Sx) * r, rnd)
+            b1= sls.float_round((Sy/Sx) * r, rnd, round)
             b0 = Meany - (Meanx * b1)
             if plot == False and residual2 == False:
-                return [round(b1, rnd), round(b0, rnd)]
+                return [rsls.float_round(b1, rnd, round), sls.float_round(b0, rnd, round)]
             elif plot == False and residual2 == True and y != None:
                 predicted_y = list(map(lambda c: (c * b1) + b0, x))
                 rsdl = list(map(lambda v, b : (v - b) ** 2, y, predicted_y))
                 rsdl_sum = sum(rsdl)
-                return [round(b1, rnd), round(b0, rnd), round(rsdl_sum, rnd)]
+                return [sls.float_round(b1, rnd, round), sls.float_round(b0, rnd,round), sls.float_round(rsdl_sum, rnd, round)]
             elif plot == True and x_range != None:
-                title = "Least-Sqaured Regression: y = {} * x + {}".format(round(b1, rnd), round(b0, rnd))
+                title = "Least-Sqaured Regression: y = {} * x + {}".format(sls.float_round(b1, rnd, round), sls.float_round(b0, rnd, round))
                 func = partial(sls.linear_equa_formula, b1, b0)
                 return slv.Linear_graph(formula=func, x_range = x_range, title = title)
             elif plot == True and x_range == None:
@@ -323,13 +325,13 @@ class statistic_lab_toolkits():
         if type ==  "std":
             result_std = sum(list(map(lambda a,b : ((a - result_mean) ** 2) * b , x, p)))
             final_result_std = result_std ** (1/2)
-            return round(final_result_std, rnd)
+            return sls.float_round(final_result_std, rnd, round)
     # ----------------------------------------------- Binomial Probability Formula -------------------------------------------------
     @staticmethod
     def BinomP(n, x, p, rnd = 4):
         Count = statistic_lab_toolkits.Counting(n = n, r = x , type = "combination", repeated = False, ordered = False, distinct = True)
         BinomPro = Count * ((p) ** x) * ((1-p) ** (n -x))
-        return round(BinomPro, rnd)
+        return sls.float_round(BinomPro, rnd, round)
     # ----------------------------------------------- Binomial Distrubution -------------------------------------------------
     @staticmethod
     #calculate  "probability", "mean" and "std"
@@ -356,13 +358,13 @@ class statistic_lab_toolkits():
             return result
         if type != "probability" and type != None :
             mn = n * p
-            mean = round(mn, rnd)
+            mean = rsls.float_round(mn, rnd, round)
             if type == "mean":
                 return mean
             if type == "std":
                 variance = mean * (1 - p)
                 std_dev = variance**(1/2)
-                return round(std_dev, rnd)
+                return sls.float_round(std_dev, rnd, round)
     
     # ----------------------------------------------- Poisson Probability formula  -------------------------------------------------
     # lambda represnt the avreage number of occurrences of the event in some interval of length 1 and e=2.71828
@@ -374,7 +376,7 @@ class statistic_lab_toolkits():
         total_occur = lmda * t
         FactoX = sls.Factorial_n(x)
         result = ((total_occur ** x)/FactoX) * (e ** (-total_occur))
-        return round(result, rnd)
+        return sls.float_round(result, rnd, round)
 
     #----------------------------------------------- Poisson Probability distribution  -------------------------------------------------
     #type = calculate  "probability", "mean" and "std"
@@ -402,12 +404,12 @@ class statistic_lab_toolkits():
 
         if type != "probability" and type != None and x == None:
             avg = lmda * t
-            mean = round(avg, rnd)
+            mean = sls.float_round(avg, rnd, round)
             if type == "mean":
                 return mean
             if type == "std":
                 std_dev = mean**(1/2)
-                return round(std_dev, rnd)
+                return sls.float_round(std_dev, rnd, round)
     #----------------------------------------------- Normal Distribution : probablity density function -------------------------------------------------
     # pdf function : (1/(stedev * (2*pi) ** (1/2)) * (e ** ((-1/2) * ((x - mean)/stdev)**2)))
     @staticmethod   
@@ -446,12 +448,12 @@ class statistic_lab_toolkits():
         zList = None
         graph = None
         if isinstance(x, (list,)) and len(x) == 2 and z == None and  ztable == False and find_x == False:
-            
-            z1 = round(statistic_lab_toolkits.z_score(mean, std, min(x)), 2)
-            z2 = round(statistic_lab_toolkits.z_score(mean, std, max(x)), 2)
+            z1 = sls.float_round(statistic_lab_toolkits.z_score(mean, std, min(x)), 2, round)
+            z2 = sls.float_round(statistic_lab_toolkits.z_score(mean, std, max(x)), 2, round)
             zList = [z1, z2]
         elif isinstance(x, (list,)) == False and z == None and ztable == False:
-            z = round(statistic_lab_toolkits.z_score(mean, std, x), 2)
+            z = sls.float_round(statistic_lab_toolkits.z_score(mean, std, x), 2, round)
+            #print("1. z eqauls: {}".format(z))
         elif z != None and x == None and mean == None and std == None and ztable == False:
             if isinstance(z, (list,)) == False:
                 z = z
@@ -464,11 +466,11 @@ class statistic_lab_toolkits():
                     area_p
                 else:
                     area_p = 1- area_p
-                area_p = round(area_p, rnd)
-                print(area_p)
+                area_p = sls.float_round(area_p, rnd, round)
+                # print(area_p)
                 result_list = sls.data_match(value = area_p, table = table, index=False)
                 try:
-                    result = round (float(result_list[0]) + float(result_list[1]), 3)
+                    result = sls.float_round(float(result_list[0]) + float(result_list[1]), 4, round)
                     return result 
                 except:
                     print ("Error: could not find probability value in the Z-table !!")
@@ -480,15 +482,21 @@ class statistic_lab_toolkits():
             if isinstance(zList, (list,)) and len(zList) == 2:
                 P1, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[0])
                 P2, _= quad(statistic_lab_toolkits.normpdf, np.NINF, zList[1])
-                result = round(round(P2, rnd) - round(P1, rnd), rnd)
+                result = sls.float_round(P2 - P1, rnd, round)
                 if plot == True and compare!= None :
                     graph = slv.norm_plot(z = zList, p=result,range = compare,  wdh =9 , hgt = 6, clr = "b")    
             else:
+                #print("z eqauls: {}".format(z))
                 P, _= quad(statistic_lab_toolkits.normpdf, np.NINF, z)
-                result = round(P, rnd)
+                result = sls.float_round(P, rnd, round)
+                # print("result: {}".format(result))
                 if plot == True and compare!= None :
-                    graph = slv.norm_plot(z = z, p=result,range = compare,  wdh =9 , hgt = 6, clr = "b")  
+                    if compare in [">", ">="]:
+                        graph = slv.norm_plot(z = z, p= (1-result),range = compare,  wdh =9 , hgt = 6, clr = "b")  
+                    else:
+                        graph = slv.norm_plot(z = z, p= result,range = compare,  wdh =9 , hgt = 6, clr = "b")  
             if graph == None:
+                #  print("result: {}".format(result))
                  return result 
             else:
                 return graph 
