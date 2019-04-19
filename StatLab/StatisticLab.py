@@ -508,9 +508,195 @@ class statistic_lab_toolkits():
                     val2 = (z[1] * std) + mean
                     result = [val1, val2]
                 return result
-
+    #----------------------------------------------- Gaussian Crtical Values or Critical value for Z -------------------------------------------------
+    # P is tail area for confidnece interval: 95% as 0.025 , 90% as 0.05, 99% as 0.005
+    @staticmethod
+    def z_critical_val(value , rnd = 2):
+            result = scipy.stats.norm.ppf(value)
+            return result
        
+
+     #----------------------------------------------- Confidence Interval in normal distibution -------------------------------------------------
+    #  <95% of all sample proportions> will <result in>< confidence interval estimates> that <contain the population proportion>, 
+    #  whereas <5% of all sample proportions> will <result in> <confidence interval estimates> that <do not contain the population proportion>
+    # N is sample size, n is proportion of sample with certain characterristics, 
+    # P is tail area for confidnece interval: 95% as 0.025 , 90% as 0.05, 99% as 0.005
+    @staticmethod   
+    def z_interval(n, x, alpha, rnd = 3, rndZ = 2):
+        p = x/n
+        value = (1-alpha) + (alpha/2)
+        critical_val = sls.float_round(statistic_lab_toolkits.z_critical_val(value), places = rndZ, direction = round)
+        # print(critical_val)
+        standerd_error = (p*(1-p)/ n) ** (1/2)
+        # print(standerd_error)
+        margin_error = critical_val * standerd_error
+        # print(margin_error)
+        lower = sls.float_round(p - margin_error, 3, round)
+        higher = sls.float_round(p + margin_error, 3, round)
+        return (lower, higher)
+    
+    #----------------------------------------------- t-distribution: t-value -level of confidence for estimates of population mean ---------------------------------------------
+    # confidence level: 95%, then Aplah would be 1-95% = 0.05
+    @staticmethod   
+    def t_crtical_value(degree_of_freedom, alpha, rnd=3):
+        alpha_half = alpha/2
+        t_value = scipy.stats.t.ppf(1-alpha_half, degree_of_freedom)
+        t_value = sls.float_round(t_value, places= rnd, direction = round)
+        return t_value
+    
+    #----------------------------------------------- t-distribution: t-interval- level of confidence for estimates of population mean ---------------------------------------------
+    # confidence level: 95%, then Aplah would be 1-95% = 0.05
+    # degree of reedom is usually sample size - 1 as n -1
+    @staticmethod   
+    def t_interval( alpha, x = None, rnd=3, degree_of_freedom = None, mean = None, std=None):
+        if x == None and mean != None and std != None and degree_of_freedom != None :
+            
+            if degree_of_freedom < 30:
+                n = degree_of_freedom + 1
+            else:
+                n = degree_of_freedom
+            t_value = statistic_lab_toolkits.t_crtical_value(degree_of_freedom, alpha, rnd=3)
+            piece = std/(n ** (1/2))
+        if x != None :
+            n = len(x)
+            if n < 30:
+                degree_of_freedom = n -1
+            else:
+                degree_of_freedom = n
+            t_value = statistic_lab_toolkits.t_crtical_value(degree_of_freedom, alpha, rnd=3)
+            mean = statistic_lab_toolkits.mean(x)
+            std = statistic_lab_toolkits.std_dev(x, type = "Sample", rnd = rnd)
+            piece = std/(n ** (1/2))
+
+        margin_of_error = float(t_value) * float(piece)
+        lower_bound = sls.float_round(mean - margin_of_error, places= rnd, direction = round)
+        high_bound = sls.float_round(mean + margin_of_error, places= rnd, direction = round)
+        return (lower_bound, high_bound)
+
+    
+    #----------------------------------------------- Deterine sample size ---------------------------------------------
+    # confidence level: 95%, then Aplah would be 1-95% = 0.05
+    # type = popu (sample size to estimae the population proportion); type = mean, sample size to estimate population mean, type = std, samep size to estimate population standerd deviation
+    # E is margin of error
+    @staticmethod   
+    def sample_size_inference(alpha, s= None, p = None, E = None , type = "popu"):
+        if type == "popu" and E != None:
+            z_value = statistic_lab_toolkits.z_critical_val(alpha)
+            # print((z_value/E) ** 2)
+            if p == None:
+                result = 0.25 * ((z_value/E) ** 2)     
+            if p != None:
+                result = p * (1-p) * ((z_value/E) ** 2)
+            n = sls.float_round(result, 0, round)
+            return n
         
+        if type == "mean" and s != None and E != None:
+            z_value = statistic_lab_toolkits.z_critical_val(alpha)
+            result = ((z_value * s) / E) ** (2)
+            n = sls.float_round(result, 0, round)
+            return n
+    # --------------------------------------------- P-value generating ----------------------------------------
+    @staticmethod  
+    def p_values_z(z, side = 1, compare = "<"):
+        if side == None and compare == None:
+            result = sls.float_round(scipy.stats.norm.sf(z), 4, round)
+            return result
+        if side == 1:
+            if compare == "<" :
+                if z <=0:
+                    z = abs(z)
+                result = sls.float_round(scipy.stats.norm.sf(abs(z)), 4, round)#one-sided in left
+                
+            if compare == ">" :
+                if z >= 0 :
+                    z = -z
+                result = sls.float_round(scipy.stats.norm.sf(abs(z)), 4, round)
+            return result 
+
+        if side == 2 :
+            if z < 0:
+                z = abs(z)
+            if z > 0:
+                z = -z
+            if compare == "<>":
+                result = sls.float_round(scipy.stats.norm.sf(z), 4, round)
+                p_val = result  * 2
+                return p_val
+            # if compare == "><":
+            #     result_left = sls.float_round(scipy.stats.norm.sf(z_left), 4, round)
+            #     result_right = sls.float_round(scipy.stats.norm.sf(z_right), 4, round)
+            #     middle_area = result_right - result_left
+            #     return middle_area
+        
+    #----------------------------------------------- Hypothesis Testing for population proportion ---------------------------------------------
+    @staticmethod   
+    # type= classic (compare z-crtical value)
+    # type = p_value,  compare p_value with level of significant which is alpha
+    # type =confidence Interval
+    # compare = <, > , <>, each matches left tail, right tail and two tails
+    def hypo_test_p(p0, p, n, alpha, type = "classic", compare = "<",rnd =3):
+        result0 = "Null Hypothesis Rejected"
+        result1 = "Not sufficient to Reject Null Hypothesis"
+        z0 = sls.float_round((p - p0) / (p0 * (1-p0)/n) ** (0.5), 2, round)
+        print(z0)
+        if type == "classic":
+            if compare =="<":
+                z = statistic_lab_toolkits.z_critical_val(alpha , rnd = 3)
+                if z0 < z:
+                    return {result0: [z0, z]} ## null hypothesis got rejected
+                else:
+                    return {result1: [z0, z]} ## not sufficient to reject null hypothesis
+            if compare == ">":
+                z = - statistic_lab_toolkits.z_critical_val(alpha , rnd = 3)
+                if z0 > z:
+                    return {result0: [z0, z]} ## null hypothesis got rejected
+                else:
+                    return {result1: [z0, z]} ## not sufficient to reject null hypothesis
+
+            if compare == "<>":
+                alpha = alpha /2
+                z_left = statistic_lab_toolkits.z_critical_val(alpha , rnd = 3)
+                z_right = -statistic_lab_toolkits.z_critical_val(alpha , rnd = 3)
+                if z0 > z_right and z0 < z_left:
+                    return {result0: [z0, z_left, z_right]} ## null hypothesis got rejected
+                elif z0 < z_right and z0 > z_left:
+                    return {result1: [z0, z_left, z_right]} ## not sufficient to reject null hypothesis
+
+        # when using p_value to do hypothesis testing    
+        if type == "p_value":
+            if compare =="<":
+                p_val = statistic_lab_toolkits.p_values_z(z0, side = 1, compare = compare)
+                if alpha > p_val:
+                    return {result0: [p_val, alpha]}
+                else:
+                    return {result1: [p_val, alpha]}
+            if compare == ">":
+                p_val = statistic_lab_toolkits.p_values_z(z0, side = 1, compare = compare)
+                if alpha < p_val:
+                    return {result0: [p_val, alpha]}
+                else:
+                    return {result1: [p_val, alpha]}
+            if compare == "<>":
+                p_val = statistic_lab_toolkits.p_values_z(z0, side = 2, compare = compare)
+                if alpha > p_val:
+                    return {result0: [p_val, alpha]}
+                elif alpha < p_val:
+                    return {result1: [p_val, alpha]}
+                
+
+
+
+
+
+
+
+
+        
+
+
+
+        
+
             
       
 

@@ -151,6 +151,9 @@ class statistic_lab_support:
             number = str(result_output).split(".")
             int_num = number[0]
             decimal_num = number[1]
+            if places == 0:
+                result = round(num, 0)
+                return result
             if len(decimal_num) == places:
                 result = direction(num * (10**places)) / float(10**places)
                 return result
