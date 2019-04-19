@@ -49,9 +49,19 @@ norm_z_table(max_lim )
 normcurv (x = None, mean = None, std = None, z = None, area_p = None, InvNorm = False, rnd = 4, p = True, ztable = False, find_z = False, 
                      find_x = False, plot = False, compare = None)
         
+z_critical_val(value , rnd = 2)
+    
+z_interval(n, x, alpha, rnd = 3, rndZ = 2)
 
+t_crtical_value(degree_of_freedom, alpha, rnd=3)
 
+t_interval( alpha, x = None, rnd=3, degree_of_freedom = None, mean = None, std=None)
 
+sample_size_inference(alpha, s= None, p = None, E = None , type = "popu")
+
+p_values_z(z, side = 1, compare = "<")
+  
+hypo_test_p(p0, p, n, alpha, type = "classic", compare = "<",rnd =3)
 
 
 
