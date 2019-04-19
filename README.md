@@ -2,7 +2,7 @@
 
 ## Documentation/Instructions of statlab Module:
 
-#### In side of statlab module, there are functions we can use to perform statistical analysis such as mean, median, mode, find_IQR, LinearEquation...
+#### Inside of statlab module, there are functions we can use to perform statistical analysis such as mean, median, mode, find_IQR, LinearEquation...
 
 mean(x, rm_na = False, convert_na = False)
 
