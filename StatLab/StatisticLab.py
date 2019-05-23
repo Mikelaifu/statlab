@@ -1,5 +1,6 @@
 ## created by Mike WU
-##  last Modified: 2/14/2019
+## Created: 2/14/2019
+## Last Modified: 5/21/2019
 ## class to return Statistic Values/graphs/concepts/calculation
 from StatisticLabSupport import statistic_lab_support
 from StatisticLabVisualizer import statistic_lab_vizard
@@ -365,7 +366,6 @@ class statistic_lab_toolkits():
                 variance = mean * (1 - p)
                 std_dev = variance**(1/2)
                 return sls.float_round(std_dev, rnd, round)
-    
     # ----------------------------------------------- Poisson Probability formula  -------------------------------------------------
     # lambda represnt the avreage number of occurrences of the event in some interval of length 1 and e=2.71828
     #T is length of time
@@ -431,9 +431,6 @@ class statistic_lab_toolkits():
         standerd_normal_table.index = standerd_normal_table.index.astype(str)
         standerd_normal_table.columns = standerd_normal_table.columns.astype(str)
         return standerd_normal_table
-
-
-    
     #----------------------------------------------- Normal Distribution : nomral curve area claculation -------------------------------------------------
     # find normal distribution probability based on z-score  and pdf function to get proportion of area of distribution less than x
     # accoridng to inver z-score to find area_p
@@ -539,8 +536,7 @@ class statistic_lab_toolkits():
     # confidence level: 95%, then Aplah would be 1-95% = 0.05
     @staticmethod   
     def t_crtical_value(degree_of_freedom, alpha, rnd=3):
-        alpha_half = alpha/2
-        t_value = scipy.stats.t.ppf(1-alpha_half, degree_of_freedom)
+        t_value = scipy.stats.t.ppf(1- alpha, degree_of_freedom)
         t_value = sls.float_round(t_value, places= rnd, direction = round)
         return t_value
     
@@ -632,13 +628,13 @@ class statistic_lab_toolkits():
     @staticmethod   
     # type= classic (compare z-crtical value)
     # type = p_value,  compare p_value with level of significant which is alpha
-    # type =confidence Interval
+    # type = confid_vel, which use confidence interval to estimate the hypothesis testing 
     # compare = <, > , <>, each matches left tail, right tail and two tails
     def hypo_test_p(p0, p, n, alpha, type = "classic", compare = "<",rnd =3):
         result0 = "Null Hypothesis Rejected"
         result1 = "Not sufficient to Reject Null Hypothesis"
         z0 = sls.float_round((p - p0) / (p0 * (1-p0)/n) ** (0.5), 2, round)
-        print(z0)
+        # print(z0)
         if type == "classic":
             if compare =="<":
                 z = statistic_lab_toolkits.z_critical_val(alpha , rnd = 3)
@@ -661,28 +657,207 @@ class statistic_lab_toolkits():
                     return {result0: [z0, z_left, z_right]} ## null hypothesis got rejected
                 elif z0 < z_right and z0 > z_left:
                     return {result1: [z0, z_left, z_right]} ## not sufficient to reject null hypothesis
-
         # when using p_value to do hypothesis testing    
         if type == "p_value":
             if compare =="<":
                 p_val = statistic_lab_toolkits.p_values_z(z0, side = 1, compare = compare)
-                if alpha > p_val:
+                if p_val < alpha:
                     return {result0: [p_val, alpha]}
                 else:
                     return {result1: [p_val, alpha]}
             if compare == ">":
                 p_val = statistic_lab_toolkits.p_values_z(z0, side = 1, compare = compare)
-                if alpha < p_val:
-                    return {result0: [p_val, alpha]}
-                else:
+                if p_val > alpha:
                     return {result1: [p_val, alpha]}
+                else:
+                    return {result0: [p_val, alpha]}
             if compare == "<>":
                 p_val = statistic_lab_toolkits.p_values_z(z0, side = 2, compare = compare)
                 if alpha > p_val:
                     return {result0: [p_val, alpha]}
                 elif alpha < p_val:
                     return {result1: [p_val, alpha]}
-                
+        if  type == "confid_vel" and compare == "<>":
+
+            interval = statistic_lab_toolkits.z_interval(n = n, x= (n * p), alpha= alpha, rnd = 3)
+            if p0 < float(interval[0]) or p0 > float(interval[1]):
+                return result0 
+            if p0 >= float(interval[0]) or p0 <= float(interval[1]):
+                return result1
+    # ---------------------------------------------- one sample t-test -------------------------------------------
+    # data as a array of data: 
+    @staticmethod
+    def ttest_1sample(data, compare, dof):
+        if compare == "<>":  # if its a two tailed test
+            x = scipy.stats.ttest_1samp(data, dof)
+            return (x[0], x[1])
+        if compare != "<>": # if left or right tailed
+            x = scipy.stats.ttest_1samp(data, dof)
+            return (x[0], x[1]/2) ## the p value will need to divided by 2 since the function will return two tailed p value result
+    # ----------------------------------------------- Find p-value based on a t statistic ----------------------------------------
+    @staticmethod
+    def pval_from_t(t_score, df, rnd):
+        pass
+#----------------------------------------------- Hypothesis Testing for population mean ---------------------------------------------
+    @staticmethod   
+    # type= classic (compare t-crtical value)
+    # type = p_value,  compare p_value with level of significant which is alpha from t 
+    # type = confid_vel, which use confidence interval to estimate the hypothesis testing 
+    # compare = <, > , <>, each matches left tail, right tail and two tails
+    def hypo_test_mean(mu0, mu, s, n, alpha, df= None, type = "classic", compare = "<",rnd =3):
+        result0 = "Null Hypothesis Rejected"
+        result1 = "Not sufficient to Reject Null Hypothesis"
+        t0 = (mu - mu0)/(s/(n)**(0.5))
+        if type == "classic":
+            if df != None:
+                degree_of_freedom = df
+            else:
+                degree_of_freedom =  n - 1
+            t_alpha = statistic_lab_toolkits.t_crtical_value(degree_of_freedom, alpha, rnd=3)
+            if compare =="<":
+                t_alpha = -1 * t_alpha
+                if t0 <= t_alpha:
+                    return {result0: [t0, t_alpha]}
+                else:
+                    return {result1: [t0, t_alpha]}
+            if compare == ">":
+                if t0 >= t_alpha:
+                    return {result0: [t0, t_alpha]}
+                else:
+                    return {result1: [t0, t_alpha]}
+            if compare == "<>":
+                alpha = alpha /2
+                t_alpha = statistic_lab_toolkits.t_crtical_value(degree_of_freedom, alpha, rnd=3)
+                t_alpha_converse = -1 * t_alpha
+                result = sls.fall_in_interval(target_val = t0, val1= t_alpha, val2 = t_alpha_converse)
+                print(result)
+                if result == False:  # if t0 fall in interval /outisde of the area, then do not reject 
+                    return {result0: [t0, (t_alpha, t_alpha_converse)]}
+                else: # else: reject the null hypothesis
+                    return {result1: [t0, (t_alpha, t_alpha_converse)]}
+        ## how to program this? to get p-value based on t test statistic?
+        if type == "p_value":
+            if compare =="<":
+               pass
+            if compare == ">":
+               pass
+            if compare == "<>":
+                pass
+
+#----------------------------------------------- Chi-sqaure Critical Value ---------------------------------------------
+    @staticmethod 
+    def chi_sqaure_critical_val(area, df, rnd = 2):
+        result = sls.float_round(scipy.stats.chi2.isf(q=area, df=df), rnd, round)
+        return result
+
+#----------------------------------------------- Confidnece Interval of Standerd Deviation ---------------------------------------------
+    @staticmethod 
+    def confid_int_std(alpha, n, rnd ,s = None, x= None, rm_na = False,  convert_na = False ):
+        if x == None and s == None:
+            return warnings.warn("Warning: s or x cannot be empty")
+        if x != None:
+            S = statistic_lab_toolkits.std_dev(x, type = "Population", rm_na = rm_na,  convert_na = convert_na, rnd = rnd)
+        if s != None:
+            S = s
+        area_val1 = alpha/2
+        area_val2 =  1- alpha/2
+        Upper_critical_value = statistic_lab_toolkits.chi_sqaure_critical_val(area = area_val1 , df = n-1, rnd = 4)
+        Lower_critical_value = statistic_lab_toolkits.chi_sqaure_critical_val(area = area_val2, df = n-1, rnd = 4)
+        Upper_bound= sls.float_round(((n-1) * (S **2)) / Upper_critical_value, rnd, round)
+        Lower_bound= sls.float_round(((n-1) * (S **2)) / Lower_critical_value, rnd, round)
+
+        return (Lower_bound, Upper_bound )
+
+##----------------------------------------------- P-vlaue from Chi-sqaure ---------------------------------------------
+    @staticmethod 
+    def chi_sqaure_p_val (score, df, rnd):
+        result = sls.float_round(scipy.stats.chi2.sf(score, df), rnd, round)
+        return result
+
+#----------------------------------------------- Hypothesis Testing Standerd Deviation ---------------------------------------------
+    # type can be classic or p_value
+    # compare cna be < left side, > right sided, <> two sided is usally not adaptable for chi-sqaure
+    @staticmethod  
+    def hypo_test_std(n, alpha, std, x = None ,s = None,  type = "classic", compare = "<",rnd =3, rm_na = False,  convert_na = False):
+        result0 = "Null Hypothesis Rejected"
+        result1 = "Not sufficient to Reject Null Hypothesis"
+        df = n - 1
+        if x == None and s == None:
+            return warnings.warn("Warning: s or x cannot be empty")
+        if x != None:
+            S = statistic_lab_toolkits.std_dev(x, type = "Sample", rm_na = rm_na,  convert_na = convert_na, rnd = rnd)
+        if s != None:
+            S = s
+        test_stat = sls.float_round(((n -1)* (S ** 2))/ (std ** 2), rnd, round)
+        if type == "classic":
+            if compare == "<":
+                area_val = 1- alpha
+                left_critical_val = statistic_lab_toolkits.chi_sqaure_critical_val(area = area_val , df = df, rnd = 4)
+                if test_stat < left_critical_val:
+                    return result0
+                else:
+                    return result1
+            if compare ==">":
+                area_val =  alpha
+                right_critical_val = statistic_lab_toolkits.chi_sqaure_critical_val(area = area_val , df = df, rnd = 4)
+                if test_stat > right_critical_val:
+                    return result0
+                else:
+                    return result1
+            
+        if type == "p_value":
+            raw_p_val = statistic_lab_toolkits.chi_sqaure_p_val (score = test_stat , df= df, rnd = rnd)
+            if compare == "<":
+                p_val = 1- raw_p_val
+            if compare == ">":
+                p_val = raw_p_val
+            if p_val < alpha :
+                    return result0
+            else:
+                    return result1
+        
+#----------------------------------------------- Hypothesis Testing for fit of goodness ---------------------------------------------
+    @staticmethod   
+    # hypo testing if the distribution was the same as expected or not the same based on observed distirbution
+    def hypo_test_fit_goodness(expt_val, obv_val, alpha, type = "classic", compare = "<" , rnd = 3):
+        result0 = "Null Hypothesis Rejected"
+        result1 = "Not sufficient to Reject Null Hypothesis"
+        if len(expt_val) != len(obv_val):
+            return warnings.warn("Warning: expt_val, obv_val cannot be contain different number of values")
+        df = len(expt_val) - 1
+        X0 = list(map(lambda x, y : ((x - y)**2) / y , obv_val, expt_val))
+        test_stat = sum(X0)
+        if type == "classic":
+            if compare == "<":
+                left_critical_val = statistic_lab_toolkits.chi_sqaure_critical_val(area = 1-alpha , df = df, rnd = 4)
+                if test_stat > left_critical_val:
+                    return result0
+                else:
+                    return result1
+            if compare == ">":
+                right_critical_val = statistic_lab_toolkits.chi_sqaure_critical_val(area =  alpha , df = df, rnd = 4) 
+                if test_stat < right_critical_val:
+                    return result0
+                else:
+                    return result1
+        if type == "p_value":
+            raw_p_val = statistic_lab_toolkits.chi_sqaure_p_val (score = test_stat , df= df, rnd = rnd)
+            if compare == "<":
+                p_value = 1 - raw_p_val
+            if compare == ">":
+                p_value =  raw_p_val
+            if p_value < alpha :
+                    return result0
+            else:
+                    return result1
+
+#----------------------------------------------- Least Sqaure Regression Analysis ---------------------------------------------
+## apply least_sqaure regression model to predict and inference data
+    @staticmethod  
+    def Least_Square_regression():   
+        pass     
+
+
 
 
 
